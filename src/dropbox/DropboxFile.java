@@ -3,6 +3,9 @@ package dropbox;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
@@ -20,13 +23,14 @@ public class DropboxFile extends File {
 	private String ext;
 
 	private Date dateModified;
+	GregorianCalendar cal;
 
 	public DropboxFile(String username, String filename, int size) {
 		super(filename);
 		this.username = username;
 		this.filename = filename;
 		this.size = size;
-		GregorianCalendar cal = new GregorianCalendar();
+		cal = new GregorianCalendar();
 		this.dateModified = cal.getTime();
 	}
 
@@ -66,8 +70,16 @@ public class DropboxFile extends File {
 		this.ext = ext;
 	}
 
-	public void upload(Chunk chunk) {
-
+	public void upload(Chunk chunk) throws IOException, FileOutOfMemoryException {
+		
+		if( getFreeSpace() > chunk.getBytes().length){
+			Files.write(Paths.get(getAbsolutePath()), chunk.getBytes(), StandardOpenOption.APPEND);
+			dateModified = cal.getTime();
+		}
+		
+		else{
+			throw new FileOutOfMemoryException();
+		}
 	}
 
 	// TODO deal with if not enough bytes file is shorter than request
