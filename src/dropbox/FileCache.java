@@ -1,6 +1,7 @@
 package dropbox;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
@@ -52,7 +53,7 @@ public class FileCache {
 	}*/
 
 	//client add chunk to server file
-	public void addChunk(String username, Chunk chunk) throws IOException, FileOutOfMemoryException {
+	public void addChunk(Chunk chunk) throws IOException, FileOutOfMemoryException {
 		File[] folder=directory.listFiles();
 		for(File file:folder){
 			if(file.getName().equals(chunk.getFilename())){
@@ -63,7 +64,7 @@ public class FileCache {
 			}
 		}
 		
-		DropboxFile file = new DropboxFile(username, chunk.getFilename(), chunk.getBytes().length);
+		DropboxFile file = new DropboxFile(chunk.getFilename(), chunk.getBytes().length);
 		file.close();
 	}
 	//client get chunk from server
@@ -79,5 +80,14 @@ public class FileCache {
 		//TODO if not enough to send back send length of actual data?
 		//TODO throw exception?
 		return null;
+	}
+
+	public File findFile(String filename) throws FileNotFoundException {
+		for(File file:directory.listFiles()){
+			if(file.getName().equals(filename)){
+				return file;
+			}
+		}
+		throw new FileNotFoundException();
 	}
 }

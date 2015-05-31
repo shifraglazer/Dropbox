@@ -17,7 +17,7 @@ public class DropboxFile extends RandomAccessFile {
 	private Date dateModified;
 	GregorianCalendar cal;
 
-	public DropboxFile(String username, String filename, int size)
+	public DropboxFile(String filename, int size)
 			throws IOException {
 		super(filename, "rw");
 		setLength(size);
