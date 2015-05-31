@@ -35,15 +35,21 @@ public class FileCache {
 		folders.add(file);
 		return true;
 	}
+	
+	public File[] getFiles() {
+		File file = new File(ROOT);
+		return file.listFiles();
+		
+	}
 
-	public File[] getFiles(String username) {
+/*	public File[] getFiles(String username) {
 		for (DropboxFolder file : folders) {
 			if (file.getUsername().equals(username)) {
 				return file.listFiles();
 			}
 		}
 		return null;
-	}
+	}*/
 
 	//client add chunk to server file
 	public void addChunk(String username, Chunk chunk) throws IOException, FileOutOfMemoryException {
@@ -61,8 +67,8 @@ public class FileCache {
 		file.close();
 	}
 	//client get chunk from server
-	public Chunk getChunk(String username, String filename, int start, int length) throws MalformedURLException, IOException {
-		File[] folder=directory.listFiles();
+	public Chunk getChunk(String filename, int start, int length) throws MalformedURLException, IOException {
+		File[] folder = directory.listFiles();
 		for(File file:folder){
 			if(file.getName().equals(filename)){
 				DropboxFile match=new DropboxFile(file);

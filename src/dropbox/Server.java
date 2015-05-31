@@ -15,10 +15,13 @@ public class Server implements ReaderListener{
 	private Map<String,Socket> queue;
 	private ArrayList<Socket> sockets;
 	private WriterThread write;
+	private FileCache fileCache;
+	
 	public Server() {
-		queue= Collections.synchronizedMap(new LinkedHashMap<String,Socket>());
+		queue = Collections.synchronizedMap(new LinkedHashMap<String,Socket>());
 		sockets= new ArrayList<Socket>();
-		write=new WriterThread(queue);
+		fileCache = new FileCache();
+		write=new WriterThread(queue, fileCache, sockets);
 		write.start();
 		try {
 			ServerSocket serverSocket = new ServerSocket(6003); // port num sent
