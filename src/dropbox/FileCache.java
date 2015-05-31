@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class FileCache {
@@ -53,19 +54,20 @@ public class FileCache {
 	}*/
 
 	//client add chunk to server file
-	public void addChunk(Chunk chunk) throws IOException, FileOutOfMemoryException {
+	public Date addChunk(Chunk chunk) throws IOException, FileOutOfMemoryException {
 		File[] folder=directory.listFiles();
 		for(File file:folder){
 			if(file.getName().equals(chunk.getFilename())){
 				DropboxFile match=new DropboxFile(file);
 				match.close();
-				match.upload(chunk);
-				return;
+				return match.upload(chunk);
+				
 			}
 		}
 		
 		DropboxFile file = new DropboxFile(chunk.getFilename(), chunk.getBytes().length);
 		file.close();
+		return file.upload(chunk);
 	}
 	//client get chunk from server
 	public Chunk getChunk(String filename, int start, int length) throws MalformedURLException, IOException {
@@ -90,4 +92,18 @@ public class FileCache {
 		}
 		throw new FileNotFoundException();
 	}
+/*
+	public ChunkCommand getChunkCommand(String filename, int offset,
+			int chunksize) {
+		File[] folder = directory.listFiles();
+		for(File file:folder){
+			if(file.getName().equals(filename)){
+				DropboxFile match=new DropboxFile(file);
+				match.close();
+				return new ChunkCommand(filename,file.lastModified(),file.length(),offset,Base64.getEncoder().encodeToString(match.getChunk(offset,chunksize).getBytes());
+			}
+		}
+		
+	}
+	*/
 }

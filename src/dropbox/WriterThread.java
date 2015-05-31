@@ -9,15 +9,13 @@ import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.StringTokenizer;
 
-import org.apache.commons.codec.digest.DigestUtils;
-
-import com.sun.org.apache.xml.internal.security.exceptions.Base64DecodingException;
-import com.sun.org.apache.xml.internal.security.utils.Base64;
 
 public class WriterThread extends Thread {
 
@@ -42,7 +40,7 @@ public class WriterThread extends Thread {
 				while (iter.hasNext()) {
 					String string;
 					string = iter.next();
-					Socket s = queue.get(string);
+					Socket socket = queue.get(string);
 					StringTokenizer token = new StringTokenizer(string);
 					String cmd = token.nextToken();
 					switch (cmd) {
@@ -50,10 +48,10 @@ public class WriterThread extends Thread {
 						File[] list = fileCache.getFiles();
 
 						try {
-							writeMessage(s, new Integer(list.length).toString());
+							writeMessage(socket, "FILES "+String.valueOf(list.length));
 
-							for(File f:list){
-								writeMessage(s, "FILE "+f.getName()+" "+f.lastModified()+" "+f.length());
+							for(File file:list){
+								writeMessage(socket, "FILE "+file.getName()+" "+file.lastModified()+" "+file.length());
 							}
 						} catch (IOException e) {
 							e.printStackTrace();
@@ -61,71 +59,40 @@ public class WriterThread extends Thread {
 						break;
 					}
 					case "CHUNK": {
-						String chunkEncoded = "";
-
+						String filename=token.nextToken();
+						int lastmodified=Integer.valueOf(token.nextToken());
+						int size=Integer.valueOf(token.nextToken());
+						int offset=Integer.valueOf(token.nextToken());
+						byte[] chunk = Base64.getDecoder().decode(token.nextToken());
+						Chunk aChunk=new Chunk(filename,chunk,offset);
 						try {
-
-							byte[] c = Base64.decode(chunkEncoded);
-							Chunk obj = null;
-							ByteArrayInputStream bis = null;
-							ObjectInputStream ois = null;
-							try {
-								bis = new ByteArrayInputStream(c);
-								ois = new ObjectInputStream(bis);
-								obj = (Chunk) ois.readObject();
-
-							} finally {
-								if (bis != null) {
-									bis.close();
-								}
-								if (ois != null) {
-									ois.close();
-								}
+							Date date=fileCache.addChunk(aChunk);
+							if(offset+chunk.length==size){
+								sync(filename,(int)(long)date.getTime(),size);
 							}
-
-						} catch (Base64DecodingException e) {
-							e.printStackTrace();
-						} catch (ClassNotFoundException | IOException e) {
-							e.printStackTrace();
-						}
-
-
-						break;
-					}
-					case "DOWNLOAD": {
-						String filename = "";
-						int start = 0;
-						int length = 0;
-
-						Chunk c;
-
-						try {
-							c = fileCache.getChunk(filename, start, length);
-
-							writeMessage(s, Base64.encode(c.getBytes()));
-
-						} catch (MalformedURLException e) {
-							e.printStackTrace();
-						} catch (IOException e) {
-							e.printStackTrace();
-						}
-						break;
-					}
-					case "SYNC": {
-						String filename = "";
-						GregorianCalendar lastmodified = new GregorianCalendar();
-						int filesize = 0;
-
-						try {
-							for(Socket socket : sockets){
-								writeMessage(socket, "SYNC "+filename+" "+lastmodified.toString()+" "+filesize);
-							}
-						} catch (IOException e) {
+						} catch (IOException | FileOutOfMemoryException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
 						break;
 					}
+					case "DOWNLOAD": {
+						String filename =token.nextToken();
+						int start=Integer.valueOf(token.nextToken());
+						int size=Integer.valueOf(token.nextToken());
+						Chunk chunk;
+
+						try {
+							chunk = fileCache.getChunk(filename, start, size);
+
+							writeMessage(socket, Base64.getEncoder().encodeToString(chunk.getBytes()));
+
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+						break;
+					}
+					
 					case "LOGIN": {
 						break;
 					}
@@ -136,6 +103,14 @@ public class WriterThread extends Thread {
 		}
 	}
 
+
+	public void sync(String filename,int lastmodified,int filesize) throws IOException {
+		synchronized(sockets){
+		for(Socket asocket : sockets){
+			writeMessage(asocket, "SYNC "+filename+" "+lastmodified+" "+filesize);
+		}
+		}
+	}
 
 	public void writeMessage(Socket s, String msg) throws IOException {
 		OutputStream stream = s.getOutputStream();

@@ -1,15 +1,15 @@
 package dropbox;
 
-import java.util.regex.Pattern;
+import java.net.Socket;
 
 
 
 public abstract class Command {
 
-	Pattern pattern;
-	public Command(Pattern pattern){
-		this.pattern=pattern;
+	protected Socket socket;
+	public Command(Socket socket){
+		this.socket=socket;
 	}
 	
-	abstract void executeCommand(String line);
+	abstract void executeCommand(World world);
 }
