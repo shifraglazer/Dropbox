@@ -2,21 +2,13 @@ package dropbox;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.net.MalformedURLException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
-import org.apache.commons.io.IOUtils;
+public class DropboxFile extends RandomAccessFile {
 
-public class DropboxFile extends File {
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
 	private String username;
 	private String filename;
 	private int size;
@@ -25,11 +17,20 @@ public class DropboxFile extends File {
 	private Date dateModified;
 	GregorianCalendar cal;
 
-	public DropboxFile(String username, String filename, int size) {
-		super(filename);
+	public DropboxFile(String username, String filename, int size)
+			throws IOException {
+		super(filename, "rw");
+		setLength(size);
 		this.username = username;
 		this.filename = filename;
 		this.size = size;
+		cal = new GregorianCalendar();
+		this.dateModified = cal.getTime();
+	}
+	public DropboxFile(File file) throws IOException{
+		super(file,"rw");
+		this.filename = file.getName();
+	
 		cal = new GregorianCalendar();
 		this.dateModified = cal.getTime();
 	}
@@ -70,14 +71,16 @@ public class DropboxFile extends File {
 		this.ext = ext;
 	}
 
-	public void upload(Chunk chunk) throws IOException, FileOutOfMemoryException {
-		
-		if( getFreeSpace() > chunk.getBytes().length){
-			Files.write(Paths.get(getAbsolutePath()), chunk.getBytes(), StandardOpenOption.APPEND);
+	public void upload(Chunk chunk) throws IOException,
+			FileOutOfMemoryException {
+		byte[] bytes = chunk.getBytes();
+		if (size > bytes.length + chunk.getStart()) {
+			seek(chunk.getStart());
+			write(bytes, chunk.getStart(), bytes.length);
 			dateModified = cal.getTime();
 		}
-		
-		else{
+
+		else {
 			throw new FileOutOfMemoryException();
 		}
 	}
@@ -85,22 +88,12 @@ public class DropboxFile extends File {
 	// TODO deal with if not enough bytes file is shorter than request
 	public Chunk getChunk(int start, int length) throws MalformedURLException,
 			IOException {
-		byte[] bytes = IOUtils.toByteArray(toURI().toURL());
-		byte[] chunk = new byte[length];
-		if(bytes.length-start>=length){
-	
-		for (int i = 0; i < chunk.length; i++) {
-			chunk[i] = bytes[start + i];
-		}
-		}
-		else{
-			int left=bytes.length-start;
-			for (int i = 0; i < left; i++) {
-				chunk[i] = bytes[start + i];
-			}
-		}
-		Chunk aChunk = new Chunk(filename, chunk, start);
+		seek(start);
+		byte[] bytes = new byte[length];
+		read(bytes, start, length);
+		Chunk aChunk = new Chunk(filename, bytes, start);
+		dateModified = cal.getTime();
 		return aChunk;
-		
+
 	}
 }
