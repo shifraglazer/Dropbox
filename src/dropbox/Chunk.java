@@ -3,13 +3,13 @@ package dropbox;
 public class Chunk {
 
 	byte bytes[];
-	int start ;
+	int start;
 	String filename;
-	
-	public Chunk(String filename, byte[] bytes, int start){
-		this.bytes=bytes;
-		this.start=start;
-		this.filename=filename;
+
+	public Chunk(String filename, byte[] bytes, int start) {
+		this.bytes = bytes;
+		this.start = start;
+		this.filename = filename;
 	}
 
 	public byte[] getBytes() {
@@ -35,5 +35,5 @@ public class Chunk {
 	public void setFilename(String filename) {
 		this.filename = filename;
 	}
-	
+
 }

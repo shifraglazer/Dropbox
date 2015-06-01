@@ -1,28 +1,22 @@
 package dropbox;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.net.MalformedURLException;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.StringTokenizer;
-
 
 public class WriterThread extends Thread {
 
 	private Map<String, Socket> queue;
 	private FileCache fileCache;
 	ArrayList<Socket> sockets;
-
 
 	public WriterThread(Map<String, Socket> queue, FileCache fileCache, ArrayList<Socket> sockets) {
 		this.queue = queue;
@@ -44,14 +38,15 @@ public class WriterThread extends Thread {
 					StringTokenizer token = new StringTokenizer(string);
 					String cmd = token.nextToken();
 					switch (cmd) {
-					case "LIST":{
+					case "LIST": {
 						File[] list = fileCache.getFiles();
 
 						try {
-							writeMessage(socket, "FILES "+String.valueOf(list.length));
+							writeMessage(socket, "FILES " + String.valueOf(list.length));
 
-							for(File file:list){
-								writeMessage(socket, "FILE "+file.getName()+" "+file.lastModified()+" "+file.length());
+							for (File file : list) {
+								writeMessage(socket,
+										"FILE " + file.getName() + " " + file.lastModified() + " " + file.length());
 							}
 						} catch (IOException e) {
 							e.printStackTrace();
@@ -59,16 +54,16 @@ public class WriterThread extends Thread {
 						break;
 					}
 					case "CHUNK": {
-						String filename=token.nextToken();
-						int lastmodified=Integer.valueOf(token.nextToken());
-						int size=Integer.valueOf(token.nextToken());
-						int offset=Integer.valueOf(token.nextToken());
+						String filename = token.nextToken();
+						int lastmodified = Integer.valueOf(token.nextToken());
+						int size = Integer.valueOf(token.nextToken());
+						int offset = Integer.valueOf(token.nextToken());
 						byte[] chunk = Base64.getDecoder().decode(token.nextToken());
-						Chunk aChunk=new Chunk(filename,chunk,offset);
+						Chunk aChunk = new Chunk(filename, chunk, offset);
 						try {
-							Date date=fileCache.addChunk(aChunk);
-							if(offset+chunk.length==size){
-								sync(filename,(int)(long)date.getTime(),size);
+							Date date = fileCache.addChunk(aChunk);
+							if (offset + chunk.length == size) {
+								sync(filename, (int) (long) date.getTime(), size);
 							}
 						} catch (IOException | FileOutOfMemoryException e) {
 							// TODO Auto-generated catch block
@@ -77,9 +72,9 @@ public class WriterThread extends Thread {
 						break;
 					}
 					case "DOWNLOAD": {
-						String filename =token.nextToken();
-						int start=Integer.valueOf(token.nextToken());
-						int size=Integer.valueOf(token.nextToken());
+						String filename = token.nextToken();
+						int start = Integer.valueOf(token.nextToken());
+						int size = Integer.valueOf(token.nextToken());
 						Chunk chunk;
 
 						try {
@@ -92,7 +87,7 @@ public class WriterThread extends Thread {
 						}
 						break;
 					}
-					
+
 					case "LOGIN": {
 						break;
 					}
@@ -103,12 +98,11 @@ public class WriterThread extends Thread {
 		}
 	}
 
-
-	public void sync(String filename,int lastmodified,int filesize) throws IOException {
-		synchronized(sockets){
-		for(Socket asocket : sockets){
-			writeMessage(asocket, "SYNC "+filename+" "+lastmodified+" "+filesize);
-		}
+	public void sync(String filename, int lastmodified, int filesize) throws IOException {
+		synchronized (sockets) {
+			for (Socket asocket : sockets) {
+				writeMessage(asocket, "SYNC " + filename + " " + lastmodified + " " + filesize);
+			}
 		}
 	}
 
@@ -118,6 +112,5 @@ public class WriterThread extends Thread {
 		write.println(msg);
 		write.flush();
 	}
-
 
 }
