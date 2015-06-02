@@ -13,27 +13,30 @@ import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class Client extends World implements ReaderListener {
+public class Client implements ReaderListener {
 
 	private Socket socket;
 	private OutputStream out;
-	private static final Pattern SYNC_COMMAND = Pattern.compile("SYNC");
-	private static final Pattern FILE_COMMAND = Pattern.compile("FILE \\S+\\s\\d+\\s\\d+");
-	private static final Pattern UPLOAD_COMMAND = Pattern.compile("");
-	private static final Pattern FILES_COMMAND = Pattern.compile("FILES \\d+");
 
-	// CHUNK_BASE64_LENGTH=(256*4)/3== 342
-	private static final Pattern CHUNK_COMMAND = Pattern
-			.compile("CHUNK \\S+\\s\\d+\\s\\d+\\s\\d+\\s[a-zA-Z0-9=-]*{0,342}");
+	private static final Pattern UPLOAD_COMMAND = Pattern.compile("");
 	private static final int CHUNK_SIZE = 256;
 	private PrintWriter write;
-	private List<Command> commands;
+	private List<ClientCommand> commands;
+	private FileCache fileCache;
 
 	public Client() throws UnknownHostException, IOException {
 		fileCache = new FileCache();
-		commands = new ArrayList<Command>();
-		DownloadCommand download = new DownloadCommand(null, null, 0, 0);
-		ChunkCommand chunk = new ChunkCommand(null, null, 0, 0);
+		commands = new ArrayList<ClientCommand>();
+		// DownloadCommand download = new DownloadCommand(null, null, 0, 0);
+		ClientChunk chunk = new ClientChunk();
+		SyncCommand sync = new SyncCommand();
+		FileCommand file = new FileCommand();
+		FilesCommand files = new FilesCommand();
+		commands.add(files);
+		commands.add(chunk);
+		commands.add(sync);
+		commands.add(file);
+
 		socket = new Socket("localhost", 6003);
 		new ReaderThread(socket, this).start();
 		out = socket.getOutputStream();
@@ -52,74 +55,49 @@ public class Client extends World implements ReaderListener {
 	@Override
 	public void onLineRead(Socket socket, String line) {
 		String string = line;
-		Matcher files = FILES_COMMAND.matcher(line);
-		Matcher chunk = CHUNK_COMMAND.matcher(line);
-		Matcher upload = UPLOAD_COMMAND.matcher(line);
-		Matcher file = FILE_COMMAND.matcher(line);
-		Matcher sync = SYNC_COMMAND.matcher(line);
-		if (files.matches()) {
-			System.out.println(line);
-		}
-		// send out download
-		else if (chunk.matches()) {
-			try {
-				downloadChunk(line);
-			} catch (IOException | FileOutOfMemoryException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+
+		for (int i = 0; i < commands.size(); i++) {
+			if (commands.get(i).matches(line)) {
+				try {
+					commands.get(i).executeCommand(this);
+				} catch (IOException | FileOutOfMemoryException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
-		} else if (sync.matches()) {
-			syncFile(line);
-		} else if (file.matches()) {
-			requestUpdate(line);
 		}
+
 	}
 
-	public void requestUpdate(String line) {
-		StringTokenizer token = new StringTokenizer(line);
-		String file = token.nextToken();
-		file = token.nextToken();
-		int lastModified = Integer.valueOf(token.nextToken());
-		int size = Integer.valueOf(token.nextToken());
+	public void requestUpdate(String filename, long lastmodified, int size) {
+
 		try {
-			if (lastModified > fileCache.findFile(file).lastModified()) {
-				requestDownloadFile(file, size);
+			if (lastmodified > fileCache.findFile(filename).lastModified()) {
+				requestDownloadFile(filename, size);
 			}
 		} catch (FileNotFoundException e) {
 			System.out.println("file not found..or is newer");
-			requestDownloadFile(file, size);
+			requestDownloadFile(filename, size);
 		}
 	}
 
-	public void syncFile(String line) {
-		StringTokenizer token = new StringTokenizer(line);
-		String file = token.nextToken();
-		file = token.nextToken();
-		int lastModified = Integer.valueOf(token.nextToken());
-		int size = Integer.valueOf(token.nextToken());
+	public void syncFile(String filename, long lastmodified, int size) {
+
 		// TODO remove/fix file not found
 		try {
-			if (lastModified > fileCache.findFile(file).lastModified()) {
-				requestDownloadFile(file, size);
+			if (lastmodified > fileCache.findFile(filename).lastModified()) {
+				requestDownloadFile(filename, size);
 			}
 		} catch (FileNotFoundException e) {
 			System.out.println("file not found..or is newer");
-			requestDownloadFile(file, size);
+			requestDownloadFile(filename, size);
 		}
 
 	}
 
-	public void downloadChunk(String line) throws IOException, FileOutOfMemoryException {
-		StringTokenizer token = new StringTokenizer(line);
-		String chunk = token.nextToken();
-		chunk = token.nextToken();
-		int lastModified = Integer.valueOf(token.nextToken());
-		int size = Integer.valueOf(token.nextToken());
-		int offset = Integer.valueOf(token.nextToken());
-		String base64 = token.nextToken();
-		byte[] decoded = Base64.getDecoder().decode(base64);
-		fileCache.addChunk(new Chunk(chunk, decoded, offset));
-
+	public void addChunk(Chunk chunk) throws IOException,
+			FileOutOfMemoryException {
+		fileCache.addChunk(chunk);
 	}
 
 	public void requestDownloadFile(String filename, int size) {
@@ -129,8 +107,10 @@ public class Client extends World implements ReaderListener {
 		}
 	}
 
-	public void downloadChunkMsg(String filename, int downloadedSize, int chunkSize) {
-		writeMessage("DOWNLOAD " + filename + " " + downloadedSize + " " + chunkSize);
+	public void downloadChunkMsg(String filename, int downloadedSize,
+			int chunkSize) {
+		writeMessage("DOWNLOAD " + filename + " " + downloadedSize + " "
+				+ chunkSize);
 
 	}
 

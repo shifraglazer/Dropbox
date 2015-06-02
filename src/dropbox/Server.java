@@ -8,14 +8,16 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class Server extends world implements ReaderListener {
+public class Server  implements ReaderListener {
 
 	private Socket socket;
 	private Map<String, Socket> queue;
 	private ArrayList<Socket> sockets;
 	private WriterThread write;
+	private FileCache fileCache;
 
 	public Server() {
+		fileCache = new FileCache();
 		queue = Collections.synchronizedMap(new LinkedHashMap<String, Socket>());
 		sockets = new ArrayList<Socket>();
 
@@ -53,5 +55,16 @@ public class Server extends world implements ReaderListener {
 	public static void main(String args[]) {
 		Server server = new Server();
 	}
+
+	public void addChunk(Chunk chunk) throws IOException, FileOutOfMemoryException {
+		fileCache.addChunk(chunk);
+		
+	}
+
+	public void sync(String filename, long lastmodified, int size) {
+		//TODO send out sync message to all sockets
+		
+	}
+
 
 }
