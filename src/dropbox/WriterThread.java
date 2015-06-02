@@ -17,8 +17,7 @@ public class WriterThread extends Thread {
 	ArrayList<Socket> sockets;
 	ArrayList<ServerCommand> commands;
 	private Server server;
-	private static final Pattern SYNC_COMMAND = Pattern
-			.compile("SYNC \\S+\\s\\d+\\s\\d+");
+	private static final Pattern SYNC_COMMAND = Pattern.compile("SYNC \\S+\\s\\d+\\s\\d+");
 	Matcher matcher;
 
 	public WriterThread(Map<String, Socket> queue, FileCache fileCache,
@@ -29,8 +28,10 @@ public class WriterThread extends Thread {
 		commands = new ArrayList<ServerCommand>();
 		DownloadCommand download = new DownloadCommand();
 		ServerChunk chunk = new ServerChunk();
+		ListCommand list = new ListCommand(fileCache.getFiles());
 		commands.add(download);
 		commands.add(chunk);
+		commands.add(list);
 		this.server = server;
 	}
 
@@ -49,8 +50,7 @@ public class WriterThread extends Thread {
 					for (int i = 0; i < commands.size(); i++) {
 						if (commands.get(i).matches(string)) {
 							try {
-								command = commands.get(i)
-										.executeCommand(server);
+								command = commands.get(i).executeCommand(server);
 								if (command != null) {
 									matcher = SYNC_COMMAND.matcher(command);
 									if (matcher.matches()) {
