@@ -1,6 +1,8 @@
 package dropbox;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -21,7 +23,7 @@ public class Server  implements ReaderListener {
 		queue = Collections.synchronizedMap(new LinkedHashMap<String, Socket>());
 		sockets = new ArrayList<Socket>();
 
-		write = new WriterThread(queue, fileCache, sockets);
+		write = new WriterThread(queue, fileCache, sockets,this);
 		write.start();
 		try {
 			ServerSocket serverSocket = new ServerSocket(6003); // port num sent
@@ -64,6 +66,14 @@ public class Server  implements ReaderListener {
 	public void sync(String filename, long lastmodified, int size) {
 		//TODO send out sync message to all sockets
 		
+	}
+
+	public Chunk getChunk(String filename, int start, int size) throws MalformedURLException, IOException {
+		return fileCache.getChunk(filename, start,size);
+	}
+
+	public long getFileLastModified(String filename) throws FileNotFoundException {
+		return fileCache.getLastModified(filename);
 	}
 
 

@@ -92,17 +92,14 @@ public class FileCache {
 		throw new FileNotFoundException();
 	}
 
-	public ChunkCommand getChunkCommand(String filename, int offset, int chunksize) {
+	public long getLastModified(String filename) throws FileNotFoundException {
 		File[] folder = directory.listFiles();
 		for (File file : folder) {
 			if (file.getName().equals(filename)) {
-				DropboxFile match = new DropboxFile(file);
-				match.close();
-				return new ChunkCommand(filename, file.lastModified(), file.length(), offset, Base64.getEncoder()
-						.encodeToString(match.getChunk(offset, chunksize).getBytes()));
+			return file.lastModified();
 			}
 		}
-
+		throw new FileNotFoundException();
 	}
 
 }

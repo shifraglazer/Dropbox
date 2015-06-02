@@ -1,27 +1,37 @@
 package dropbox;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.StringTokenizer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class WriterThread extends Thread {
 
 	private Map<String, Socket> queue;
 	private FileCache fileCache;
 	ArrayList<Socket> sockets;
+	ArrayList<ServerCommand> commands;
+	private Server server;
+	private static final Pattern SYNC_COMMAND = Pattern
+			.compile("SYNC \\S+\\s\\d+\\s\\d+");
+	Matcher matcher;
 
-	public WriterThread(Map<String, Socket> queue, FileCache fileCache, ArrayList<Socket> sockets) {
+	public WriterThread(Map<String, Socket> queue, FileCache fileCache,
+			ArrayList<Socket> sockets, Server server) {
 		this.queue = queue;
 		this.fileCache = fileCache;
 		this.sockets = sockets;
+		commands = new ArrayList<ServerCommand>();
+		DownloadCommand download = new DownloadCommand();
+		ServerChunk chunk = new ServerChunk();
+		commands.add(download);
+		commands.add(chunk);
+		this.server = server;
 	}
 
 	@Override
@@ -33,75 +43,54 @@ public class WriterThread extends Thread {
 				Iterator<String> iter = queue.keySet().iterator();
 				while (iter.hasNext()) {
 					String string;
+					String command;
 					string = iter.next();
 					Socket socket = queue.get(string);
-					StringTokenizer token = new StringTokenizer(string);
-					String cmd = token.nextToken();
-					switch (cmd) {
-					case "LIST": {
-						File[] list = fileCache.getFiles();
+					for (int i = 0; i < commands.size(); i++) {
+						if (commands.get(i).matches(string)) {
+							try {
+								command = commands.get(i)
+										.executeCommand(server);
+								if (command != null) {
+									matcher = SYNC_COMMAND.matcher(command);
+									if (matcher.matches()) {
+										sync(command);
+									} else {
+										writeMessage(socket, command);
+									}
+								}
 
-						try {
-							writeMessage(socket, "FILES " + String.valueOf(list.length));
-
-							for (File file : list) {
-								writeMessage(socket,
-										"FILE " + file.getName() + " " + file.lastModified() + " " + file.length());
+							} catch (IOException | FileOutOfMemoryException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
 							}
-						} catch (IOException e) {
-							e.printStackTrace();
+
 						}
-						break;
 					}
-					case "CHUNK": {
-						String filename = token.nextToken();
-						int lastmodified = Integer.valueOf(token.nextToken());
-						int size = Integer.valueOf(token.nextToken());
-						int offset = Integer.valueOf(token.nextToken());
-						byte[] chunk = Base64.getDecoder().decode(token.nextToken());
-						Chunk aChunk = new Chunk(filename, chunk, offset);
-						try {
-							Date date = fileCache.addChunk(aChunk);
-							if (offset + chunk.length == size) {
-								sync(filename, (int) (long) date.getTime(), size);
-							}
-						} catch (IOException | FileOutOfMemoryException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-						break;
-					}
-					case "DOWNLOAD": {
-						String filename = token.nextToken();
-						int start = Integer.valueOf(token.nextToken());
-						int size = Integer.valueOf(token.nextToken());
-						Chunk chunk;
-
-						try {
-							chunk = fileCache.getChunk(filename, start, size);
-
-							writeMessage(socket, Base64.getEncoder().encodeToString(chunk.getBytes()));
-
-						} catch (IOException e) {
-							e.printStackTrace();
-						}
-						break;
-					}
-
-					case "LOGIN": {
-						break;
-					}
-					}
-
+					// TODO transfer to create servercommands for this
+					/*
+					 * StringTokenizer token = new StringTokenizer(string);
+					 * String cmd = token.nextToken(); switch (cmd) { case
+					 * "LIST": { File[] list = fileCache.getFiles();
+					 * 
+					 * try { writeMessage(socket, "FILES " +
+					 * String.valueOf(list.length));
+					 * 
+					 * for (File file : list) { writeMessage(socket, "FILE " +
+					 * file.getName() + " " + file.lastModified() + " " +
+					 * file.length()); } } catch (IOException e) {
+					 * e.printStackTrace(); } break; }
+					 */
 				}
+
 			}
 		}
 	}
 
-	public void sync(String filename, int lastmodified, int filesize) throws IOException {
+	public void sync(String command) throws IOException {
 		synchronized (sockets) {
 			for (Socket asocket : sockets) {
-				writeMessage(asocket, "SYNC " + filename + " " + lastmodified + " " + filesize);
+				writeMessage(asocket, command);
 			}
 		}
 	}
