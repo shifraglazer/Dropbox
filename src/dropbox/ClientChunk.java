@@ -12,15 +12,14 @@ public class ClientChunk extends ClientCommand {
 	private String line;
 	// CHUNK_BASE64_LENGTH=(256*4)/3== 342
 	private static final Pattern CHUNK_COMMAND = Pattern
-			.compile("CHUNK \\S+\\s\\d+\\s\\d+\\s\\d+\\s[a-zA-Z0-9=-]*{0,342}");
+			.compile("CHUNK \\S+\\s\\d+\\s\\d+\\s\\d+\\s[a-zA-Z0-9=-]*{0,}");
 
 	public ClientChunk() {
 
 	}
 
 	@Override
-	void executeCommand(Client client) throws IOException,
-			FileOutOfMemoryException {
+	void executeCommand(Client client) throws IOException{
 		StringTokenizer token = new StringTokenizer(line);
 		String chunk = token.nextToken();
 		String filename = token.nextToken();

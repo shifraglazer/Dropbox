@@ -17,8 +17,7 @@ public class FilesCommand extends ClientCommand {
 	}
 
 	@Override
-	void executeCommand(Client client) throws IOException,
-			FileOutOfMemoryException {
+	void executeCommand(Client client) throws IOException {
 		// TODO Auto-generated method stub
 
 	}

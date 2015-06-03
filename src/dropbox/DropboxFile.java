@@ -70,8 +70,7 @@ public class DropboxFile extends RandomAccessFile {
 		this.ext = ext;
 	}
 
-	public Date upload(Chunk chunk) throws IOException,
-			FileOutOfMemoryException {
+	public Date upload(Chunk chunk) throws IOException {
 		byte[] bytes = chunk.getBytes();
 		if (size > bytes.length + chunk.getStart()) {
 			seek(chunk.getStart());
@@ -79,10 +78,10 @@ public class DropboxFile extends RandomAccessFile {
 			dateModified = cal.getTime();
 			return dateModified;
 		}
-
-		else {
-			throw new FileOutOfMemoryException();
-		}
+		//TODO return date?? fix
+		//TODO file out of memory
+		return null;
+		
 	}
 
 	// TODO deal with if not enough bytes file is shorter than request

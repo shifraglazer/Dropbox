@@ -2,6 +2,7 @@ package dropbox;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
@@ -11,12 +12,12 @@ public class ServerChunk extends ServerCommand {
 
 	// CHUNK_BASE64_LENGTH=(256*4)/3== 342
 	private static final Pattern CHUNK_COMMAND = Pattern
-			.compile("CHUNK \\S+\\s\\d+\\s\\d+\\s\\d+\\s[a-zA-Z0-9=-]*{0,342}");
+			.compile("CHUNK \\S+\\s\\d+\\s\\d+\\s\\d+\\s[a-zA-Z0-9=-]*{0,}");
 
 	private String line;
 
 	@Override
-	void executeCommand(FileCache fileCache, Socket socket, Socket[] sockets) throws IOException, FileOutOfMemoryException {
+	void executeCommand(FileCache fileCache, Socket socket, ArrayList<Socket> sockets) throws IOException {
 		StringTokenizer token = new StringTokenizer(line);
 		String chunk = token.nextToken();
 		String filename = token.nextToken();
@@ -28,8 +29,11 @@ public class ServerChunk extends ServerCommand {
 		byte[] bytes = Base64.getDecoder().decode(base64);
 		fileCache.addChunk(new Chunk(filename, bytes, offset));
 		if (offset + bytes.length == size) {
-			writeMessage(socket, "SYNC " + filename + " " + lastmodified + " " + size);
+			for (Socket asocket : sockets) {
+				writeMessage(asocket, "SYNC " + filename + " " + lastmodified + " " + size);
+			}
 		}
+
 	}
 
 	@Override
@@ -38,7 +42,5 @@ public class ServerChunk extends ServerCommand {
 		line = string;
 		return match.matches();
 	}
-
-	
 
 }

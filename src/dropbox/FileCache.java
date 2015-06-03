@@ -5,18 +5,17 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 
 public class FileCache {
 
 	public List<DropboxFolder> folders;
-	public static final String ROOT = "dropbox/";
+	public static final String ROOT = "/dropbox/";
 	private File directory;
 
-	public FileCache() {
-		directory = new File(ROOT);
+	public FileCache(String filename) {
+		directory = new File(ROOT+filename);
 		directory.mkdir();
 		folders = new ArrayList<DropboxFolder>();
 	}
@@ -52,7 +51,7 @@ public class FileCache {
 	 */
 
 	// client add chunk to server file
-	public Date addChunk(Chunk chunk) throws IOException, FileOutOfMemoryException {
+	public Date addChunk(Chunk chunk) throws IOException{
 		File[] folder = directory.listFiles();
 		for (File file : folder) {
 			if (file.getName().equals(chunk.getFilename())) {

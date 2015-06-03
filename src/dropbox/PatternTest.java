@@ -25,7 +25,7 @@ public class PatternTest {
 
 	@Test
 	public void testChunkPattern() {
-		Pattern chunk = Pattern.compile("CHUNK \\S+\\s\\d+\\s\\d+\\s\\d+\\s[a-zA-Z0-9=-]*{0,342}");
+		Pattern chunk = Pattern.compile("CHUNK \\S+\\s\\d+\\s\\d+\\s\\d+\\s[a-zA-Z0-9=-]*{0,}");
 		Matcher match = chunk.matcher("CHUNK filenameglazer.txt 47834 432 0 ahjc7ahjc78hujnsnhhs865djj");
 		Assert.assertTrue(match.matches());
 

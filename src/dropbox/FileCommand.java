@@ -19,8 +19,7 @@ public class FileCommand extends ClientCommand{
 		return match.matches();
 	}
 	@Override
-	void executeCommand(Client client) throws IOException,
-			FileOutOfMemoryException {
+	void executeCommand(Client client) throws IOException {
 		StringTokenizer token = new StringTokenizer(line);
 		String file = token.nextToken();
 		file = token.nextToken();

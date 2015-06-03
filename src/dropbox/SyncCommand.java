@@ -23,8 +23,7 @@ public class SyncCommand extends ClientCommand {
 	}
 
 	@Override
-	void executeCommand(Client client) throws IOException,
-			FileOutOfMemoryException {
+	void executeCommand(Client client) throws IOException{
 		StringTokenizer token = new StringTokenizer(line);
 		String file = token.nextToken();
 		file = token.nextToken();

@@ -3,6 +3,7 @@ package dropbox;
 import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.ArrayList;
 
 
 
@@ -17,7 +18,7 @@ public class ListCommand extends ServerCommand{
 	}
 
 	@Override
-	void executeCommand(FileCache fileCache, Socket socket, Socket[] sockets) throws IOException, FileOutOfMemoryException {
+	void executeCommand(FileCache fileCache, Socket socket,ArrayList<Socket> sockets) throws IOException {
 			
 		File[] list = fileCache.getFiles();
 		

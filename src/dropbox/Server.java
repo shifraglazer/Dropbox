@@ -19,8 +19,8 @@ public class Server  implements ReaderListener {
 	private WriterThread write;
 	private FileCache fileCache;
 
-	public Server() {
-		fileCache = new FileCache();
+	public Server(String filename) {
+		fileCache = new FileCache(filename);
 		queue = Collections.synchronizedMap(new LinkedHashMap<String, Socket>());
 		sockets = new ArrayList<Socket>();
 
@@ -32,6 +32,7 @@ public class Server  implements ReaderListener {
 				socket = serverSocket.accept();
 				synchronized (sockets) {
 					sockets.add(socket);
+					System.out.println("client added");
 				}
 				ReaderThread thread = new ReaderThread(socket, this);
 				thread.start();
@@ -55,29 +56,8 @@ public class Server  implements ReaderListener {
 
 	}
 
+	
 	public static void main(String args[]) {
-		Server server = new Server();
-	}
-
-	public void addChunk(Chunk chunk) throws IOException, FileOutOfMemoryException {
-		fileCache.addChunk(chunk);
-		
-	}
-
-	public void sync(String filename, long lastmodified, int size) {
-		//TODO send out sync message to all sockets
-		
-	}
-
-	public Chunk getChunk(String filename, int start, int size) throws MalformedURLException, IOException {
-		return fileCache.getChunk(filename, start,size);
-	}
-
-	public long getFileLastModified(String filename) throws FileNotFoundException {
-		return fileCache.getLastModified(filename);
-	}
-
-	public File[] getFileList(){
-		return fileCache.getFiles();
+		Server server = new Server("server");
 	}
 }
