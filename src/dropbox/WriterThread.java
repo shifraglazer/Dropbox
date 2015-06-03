@@ -28,7 +28,7 @@ public class WriterThread extends Thread {
 		commands = new ArrayList<ServerCommand>();
 		DownloadCommand download = new DownloadCommand();
 		ServerChunk chunk = new ServerChunk();
-		ListCommand list = new ListCommand(fileCache.getFiles());
+		ListCommand list = new ListCommand();
 		commands.add(download);
 		commands.add(chunk);
 		commands.add(list);

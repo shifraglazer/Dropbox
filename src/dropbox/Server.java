@@ -1,5 +1,6 @@
 package dropbox;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -76,5 +77,7 @@ public class Server  implements ReaderListener {
 		return fileCache.getLastModified(filename);
 	}
 
-
+	public File[] getFileList(){
+		return fileCache.getFiles();
+	}
 }

@@ -1,13 +1,23 @@
 package dropbox;
 
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.net.Socket;
 
 public abstract class ServerCommand {
 
 
-	abstract boolean matches(String string);
+		
+		abstract boolean matches(String string);
 
-	abstract String executeCommand(Server server) throws IOException,
-			FileOutOfMemoryException;
+		abstract void executeCommand(FileCache fileCache, Socket socket, Socket[] sockets) throws IOException,
+				FileOutOfMemoryException;
 
+		public void writeMessage(Socket s, String msg) throws IOException {
+			OutputStream stream = s.getOutputStream();
+			PrintWriter write = new PrintWriter(stream);
+			write.println(msg);
+			write.flush();
+		}
 }

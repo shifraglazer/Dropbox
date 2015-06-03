@@ -1,6 +1,7 @@
 package dropbox;
 
 import java.io.IOException;
+import java.net.Socket;
 import java.util.Base64;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
@@ -15,8 +16,7 @@ public class ServerChunk extends ServerCommand {
 	private String line;
 
 	@Override
-	String executeCommand(Server server) throws IOException,
-			FileOutOfMemoryException {
+	void executeCommand(FileCache fileCache, Socket socket, Socket[] sockets) throws IOException, FileOutOfMemoryException {
 		StringTokenizer token = new StringTokenizer(line);
 		String chunk = token.nextToken();
 		String filename = token.nextToken();
@@ -26,11 +26,10 @@ public class ServerChunk extends ServerCommand {
 		int offset = Integer.valueOf(token.nextToken());
 		String base64 = token.nextToken();
 		byte[] bytes = Base64.getDecoder().decode(base64);
-		server.addChunk(new Chunk(filename, bytes, offset));
+		fileCache.addChunk(new Chunk(filename, bytes, offset));
 		if (offset + bytes.length == size) {
-			return "SYNC " + filename + " " + lastmodified + " " + size;
+			writeMessage(socket, "SYNC " + filename + " " + lastmodified + " " + size);
 		}
-		return null;
 	}
 
 	@Override
@@ -39,5 +38,7 @@ public class ServerChunk extends ServerCommand {
 		line = string;
 		return match.matches();
 	}
+
+	
 
 }

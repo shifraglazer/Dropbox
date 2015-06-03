@@ -10,4 +10,5 @@ public abstract class ClientCommand {
 	abstract void executeCommand(Client client) throws IOException,
 			FileOutOfMemoryException;
 
+	
 }

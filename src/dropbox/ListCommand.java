@@ -2,27 +2,25 @@ package dropbox;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.Socket;
 
 
 
 public class ListCommand extends ServerCommand{
 	
-	File[] list;
 	
-	public ListCommand(File[] list){
-		this.list = list;
-	}
+	
 	
 	@Override
 	boolean matches(String string) {//see if matches the string
-		if(string.equalsIgnoreCase("LIST")){
-			return true;
-		}
-		return false;
+		return "LIST".equalsIgnoreCase(string);
 	}
 
 	@Override
-	String executeCommand(Server server) throws IOException, FileOutOfMemoryException {
+	void executeCommand(FileCache fileCache, Socket socket, Socket[] sockets) throws IOException, FileOutOfMemoryException {
+			
+		File[] list = fileCache.getFiles();
+		
 		StringBuilder b = new StringBuilder();
 		b.append("FILES ");
 		b.append(list.length);
@@ -38,7 +36,7 @@ public class ListCommand extends ServerCommand{
 			b.append("\n");
 		}
 		
-		return b.toString();
+		writeMessage(socket,  b.toString());
 	}
 
 }

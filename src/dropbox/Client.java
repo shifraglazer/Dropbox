@@ -17,9 +17,8 @@ public class Client implements ReaderListener {
 
 	private Socket socket;
 	private OutputStream out;
-
-	private static final Pattern UPLOAD_COMMAND = Pattern.compile("");
 	private static final int CHUNK_SIZE = 256;
+	private static final Pattern UPLOAD_COMMAND = Pattern.compile("");
 	private PrintWriter write;
 	private List<ClientCommand> commands;
 	private FileCache fileCache;
