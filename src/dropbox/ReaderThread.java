@@ -19,21 +19,21 @@ public class ReaderThread extends Thread {
 	public void run() {
 		try {
 			InputStream in = socket.getInputStream();
-			BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+			BufferedReader reader = new BufferedReader(
+					new InputStreamReader(in));
 			String line;
 
 			while ((line = reader.readLine()) != null) {
-				System.out.println("reading: "+ line);
-				
-				listener.onLineRead(socket,line);
+				System.out.println("reading: " + line);
+
+				listener.onLineRead(socket, line);
 
 			}
 			// in.close();
 			// onjIn.close();
-		}
-		catch (IOException e) {
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		//listener.onCloseSocket(socket);
+		// listener.onCloseSocket(socket);
 	}
 }

@@ -5,29 +5,25 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
 
+public class ListCommand extends ServerCommand {
 
-
-public class ListCommand extends ServerCommand{
-	
-	
-	
-	
 	@Override
-	boolean matches(String string) {//see if matches the string
+	boolean matches(String string) {// see if matches the string
 		return "LIST".equalsIgnoreCase(string);
 	}
 
 	@Override
-	void executeCommand(FileCache fileCache, Socket socket,ArrayList<Socket> sockets) throws IOException {
-			
+	void executeCommand(FileCache fileCache, Socket socket,
+			ArrayList<Socket> sockets) throws IOException {
+
 		File[] list = fileCache.getFiles();
-		
+
 		StringBuilder b = new StringBuilder();
 		b.append("FILES ");
 		b.append(list.length);
 		b.append("\n");
-		
-		for (File file : list) {			
+
+		for (File file : list) {
 			b.append("FILE ");
 			b.append(file.getName());
 			b.append(" ");
@@ -36,8 +32,8 @@ public class ListCommand extends ServerCommand{
 			b.append(file.length());
 			b.append("\n");
 		}
-		
-		writeMessage(socket,  b.toString());
+
+		writeMessage(socket, b.toString());
 	}
 
 }

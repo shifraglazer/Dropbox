@@ -11,12 +11,15 @@ import java.util.List;
 public class FileCache {
 
 	public List<DropboxFolder> folders;
-	public static final String ROOT = "/dropbox/";
+	public static final String ROOT = "C://dropbox//";
 	private File directory;
 
 	public FileCache(String filename) {
 		directory = new File(ROOT+filename);
-		directory.mkdir();
+		
+		directory.mkdirs();
+		System.out.println(directory.getAbsolutePath());
+		
 		folders = new ArrayList<DropboxFolder>();
 	}
 
@@ -39,8 +42,8 @@ public class FileCache {
 	}
 
 	public File[] getFiles() {
-		File file = new File(ROOT);
-		return file.listFiles();
+		
+		return directory.listFiles();
 
 	}
 
@@ -62,7 +65,7 @@ public class FileCache {
 			}
 		}
 
-		DropboxFile file = new DropboxFile(chunk.getFilename(), chunk.getBytes().length);
+		DropboxFile file = new DropboxFile(directory,chunk.getFilename(), chunk.getBytes().length);
 		file.close();
 		return file.upload(chunk);
 	}

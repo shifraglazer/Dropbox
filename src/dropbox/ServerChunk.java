@@ -17,7 +17,8 @@ public class ServerChunk extends ServerCommand {
 	private String line;
 
 	@Override
-	void executeCommand(FileCache fileCache, Socket socket, ArrayList<Socket> sockets) throws IOException {
+	void executeCommand(FileCache fileCache, Socket socket,
+			ArrayList<Socket> sockets) throws IOException {
 		StringTokenizer token = new StringTokenizer(line);
 		String chunk = token.nextToken();
 		String filename = token.nextToken();
@@ -30,7 +31,8 @@ public class ServerChunk extends ServerCommand {
 		fileCache.addChunk(new Chunk(filename, bytes, offset));
 		if (offset + bytes.length == size) {
 			for (Socket asocket : sockets) {
-				writeMessage(asocket, "SYNC " + filename + " " + lastmodified + " " + size);
+				writeMessage(asocket, "SYNC " + filename + " " + lastmodified
+						+ " " + size);
 			}
 		}
 

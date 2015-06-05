@@ -13,7 +13,7 @@ public class DownloadCommand extends ServerCommand {
 	
 	private Socket socket;
 	private String line;
-	private static final Pattern PATTERN = Pattern.compile("");
+	private static final Pattern PATTERN = Pattern.compile("DOWNLOAD \\S+\\s\\d+\\s\\d+");
 	private static final int CHUNK_SIZE = 256;
 	public boolean matches(String string) {
 		Matcher match = PATTERN.matcher(string);

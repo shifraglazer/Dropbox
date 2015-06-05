@@ -9,7 +9,6 @@ import java.util.GregorianCalendar;
 
 public class DropboxFile extends RandomAccessFile {
 
-	private String username;
 	private String filename;
 	private int size;
 	private String ext;
@@ -17,10 +16,11 @@ public class DropboxFile extends RandomAccessFile {
 	private Date dateModified;
 	GregorianCalendar cal;
 
-	public DropboxFile(String filename, int size) throws IOException {
+	public DropboxFile(File directory,String filename, int size) throws IOException {
 		super(filename, "rw");
+		File file=new File(directory.getAbsolutePath()+"//"+filename);
+		file.mkdirs();
 		setLength(size);
-		this.username = username;
 		this.filename = filename;
 		this.size = size;
 		cal = new GregorianCalendar();
@@ -38,9 +38,6 @@ public class DropboxFile extends RandomAccessFile {
 		return filename;
 	}
 
-	public String getUsername() {
-		return username;
-	}
 
 	public void setFilename(String filename) {
 		this.filename = filename;
@@ -71,6 +68,7 @@ public class DropboxFile extends RandomAccessFile {
 	}
 
 	public Date upload(Chunk chunk) throws IOException {
+		RandomAccessFile file=new RandomAccessFile(filename,"rw");
 		byte[] bytes = chunk.getBytes();
 		if (size > bytes.length + chunk.getStart()) {
 			seek(chunk.getStart());
@@ -78,6 +76,7 @@ public class DropboxFile extends RandomAccessFile {
 			dateModified = cal.getTime();
 			return dateModified;
 		}
+		file.close();
 		//TODO return date?? fix
 		//TODO file out of memory
 		return null;

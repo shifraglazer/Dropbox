@@ -8,16 +8,15 @@ import java.util.ArrayList;
 
 public abstract class ServerCommand {
 
+	abstract boolean matches(String string);
 
-		
-		abstract boolean matches(String string);
+	abstract void executeCommand(FileCache fileCache, Socket socket,
+			ArrayList<Socket> sockets) throws IOException;
 
-		abstract void executeCommand(FileCache fileCache, Socket socket, ArrayList<Socket> sockets) throws IOException;
-
-		public void writeMessage(Socket s, String msg) throws IOException {
-			OutputStream stream = s.getOutputStream();
-			PrintWriter write = new PrintWriter(stream);
-			write.println(msg);
-			write.flush();
-		}
+	public void writeMessage(Socket s, String msg) throws IOException {
+		OutputStream stream = s.getOutputStream();
+		PrintWriter write = new PrintWriter(stream);
+		write.println(msg);
+		write.flush();
+	}
 }

@@ -35,10 +35,11 @@ public class Client implements ReaderListener {
 		new ReaderThread(socket, this).start();
 		out = socket.getOutputStream();
 		write = new PrintWriter(out);
+		requestFiles();
 	}
 
 	public void requestFiles() {
-		writeMessage("FILES");
+		writeMessage("LIST");
 	}
 
 	public void writeMessage(String message) {
@@ -96,7 +97,14 @@ public class Client implements ReaderListener {
 	public void requestDownloadFile(String filename, int size) {
 		int downloadedSize = 0;
 		while (downloadedSize < size) {
+			if(size-downloadedSize<CHUNK_SIZE){
+				downloadChunkMsg(filename, downloadedSize, size-downloadedSize);
+				downloadedSize=size;
+			}
+			else{
 			downloadChunkMsg(filename, downloadedSize, CHUNK_SIZE);
+			downloadedSize+=CHUNK_SIZE;
+			}
 		}
 	}
 
@@ -104,6 +112,7 @@ public class Client implements ReaderListener {
 			int chunkSize) {
 		writeMessage("DOWNLOAD " + filename + " " + downloadedSize + " "
 				+ chunkSize);
+		
 
 	}
 
