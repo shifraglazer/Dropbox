@@ -13,7 +13,6 @@ public class Client implements ReaderListener {
 
 	private Socket socket;
 	private OutputStream out;
-	private static final int CHUNK_SIZE = 512;
 	private PrintWriter write;
 	private List<ClientCommand> commands;
 	private FileCache fileCache;
@@ -21,7 +20,6 @@ public class Client implements ReaderListener {
 	public Client(String directory) throws UnknownHostException, IOException {
 		fileCache = new FileCache(directory);
 		commands = new ArrayList<ClientCommand>();
-		// DownloadCommand download = new DownloadCommand(null, null, 0, 0);
 		ClientChunk chunk = new ClientChunk();
 		SyncCommand sync = new SyncCommand();
 		FileCommand file = new FileCommand();
@@ -36,6 +34,11 @@ public class Client implements ReaderListener {
 		out = socket.getOutputStream();
 		write = new PrintWriter(out);
 		requestFiles();
+
+	}
+
+	public void uploadFile(String string) {
+
 	}
 
 	public void requestFiles() {
@@ -43,6 +46,7 @@ public class Client implements ReaderListener {
 	}
 
 	public void writeMessage(String message) {
+		System.out.println("client requesting:" + message);
 		write.println(message);
 		write.flush();
 	}
@@ -90,29 +94,27 @@ public class Client implements ReaderListener {
 
 	}
 
-	public void addChunk(Chunk chunk) throws IOException{
-		fileCache.addChunk(chunk);
+	public void addChunk(Chunk chunk) throws IOException {
+		fileCache.upload(chunk);
 	}
 
 	public void requestDownloadFile(String filename, int size) {
-		int downloadedSize = 0;
-		while (downloadedSize < size) {
-			if(size-downloadedSize<CHUNK_SIZE){
-				downloadChunkMsg(filename, downloadedSize, size-downloadedSize);
-				downloadedSize=size;
-			}
-			else{
-			downloadChunkMsg(filename, downloadedSize, CHUNK_SIZE);
-			downloadedSize+=CHUNK_SIZE;
-			}
-		}
+		/*
+		 * int downloadedSize = 0; System.out.println("file size="+size); while
+		 * (downloadedSize < size) { if(size-downloadedSize<CHUNK_SIZE){
+		 * System.out.println("client requesting next chunk: "+filename);
+		 * downloadChunkMsg(filename, downloadedSize, size-downloadedSize);
+		 * downloadedSize=size; } else{ downloadChunkMsg(filename,
+		 * downloadedSize, CHUNK_SIZE); downloadedSize+=CHUNK_SIZE; } }
+		 */
+		writeMessage("DOWNLOAD " + filename);
+
 	}
 
 	public void downloadChunkMsg(String filename, int downloadedSize,
 			int chunkSize) {
 		writeMessage("DOWNLOAD " + filename + " " + downloadedSize + " "
 				+ chunkSize);
-		
 
 	}
 
@@ -120,9 +122,10 @@ public class Client implements ReaderListener {
 	public void onCloseSocket(Socket socket) {
 
 	}
-	public static void main(String [] args){
+
+	public static void main(String[] args) {
 		try {
-			Client client=new Client("client1");
+			Client client = new Client("client1");
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

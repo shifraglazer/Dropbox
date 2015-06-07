@@ -12,7 +12,7 @@ public class ServerChunk extends ServerCommand {
 
 	// CHUNK_BASE64_LENGTH=(256*4)/3== 342
 	private static final Pattern CHUNK_COMMAND = Pattern
-			.compile("CHUNK \\S+\\s\\d+\\s\\d+\\s\\d+\\s[a-zA-Z0-9=-]*{0,}");
+			.compile("CHUNK \\S+\\s\\d+\\s\\d+\\s\\d+\\s[a-zA-Z0-9=/]*{0,}");
 
 	private String line;
 
@@ -28,7 +28,7 @@ public class ServerChunk extends ServerCommand {
 		int offset = Integer.valueOf(token.nextToken());
 		String base64 = token.nextToken();
 		byte[] bytes = Base64.getDecoder().decode(base64);
-		fileCache.addChunk(new Chunk(filename, bytes, offset));
+		fileCache.upload(new Chunk(filename, bytes, offset));
 		if (offset + bytes.length == size) {
 			for (Socket asocket : sockets) {
 				writeMessage(asocket, "SYNC " + filename + " " + lastmodified

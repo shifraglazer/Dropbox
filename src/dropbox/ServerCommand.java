@@ -14,6 +14,7 @@ public abstract class ServerCommand {
 			ArrayList<Socket> sockets) throws IOException;
 
 	public void writeMessage(Socket s, String msg) throws IOException {
+		System.out.println("sever sending cmd: "+ msg);
 		OutputStream stream = s.getOutputStream();
 		PrintWriter write = new PrintWriter(stream);
 		write.println(msg);

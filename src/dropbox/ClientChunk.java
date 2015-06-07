@@ -1,7 +1,6 @@
 package dropbox;
 
 import java.io.IOException;
-import java.net.Socket;
 import java.util.Base64;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
@@ -12,7 +11,7 @@ public class ClientChunk extends ClientCommand {
 	private String line;
 	// CHUNK_BASE64_LENGTH=(256*4)/3== 342
 	private static final Pattern CHUNK_COMMAND = Pattern
-			.compile("CHUNK \\S+\\s\\d+\\s\\d+\\s\\d+\\s[a-zA-Z0-9=-]*{0,}");
+			.compile("CHUNK \\S+\\s\\d+\\s\\d+\\s\\d+\\s[a-zA-Z0-9=/]*{0,}");
 
 	public ClientChunk() {
 

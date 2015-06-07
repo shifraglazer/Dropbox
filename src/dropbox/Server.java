@@ -14,7 +14,7 @@ public class Server implements ReaderListener {
 	private WriterThread write;
 	private FileCache fileCache;
 
-	public Server(String filename) {
+	public Server(String filename) throws IOException {
 		fileCache = new FileCache(filename);
 		queue = new ConcurrentHashMap<String, Socket>();
 		sockets = new ArrayList<Socket>();
@@ -52,6 +52,12 @@ public class Server implements ReaderListener {
 	}
 
 	public static void main(String args[]) {
-		Server server = new Server("server");
+		try {
+
+			Server server = new Server("server");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }

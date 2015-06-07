@@ -3,10 +3,10 @@ package dropbox;
 public class Chunk {
 
 	byte bytes[];
-	int start;
+	long start;
 	String filename;
 
-	public Chunk(String filename, byte[] bytes, int start) {
+	public Chunk(String filename, byte[] bytes, long start) {
 		this.bytes = bytes;
 		this.start = start;
 		this.filename = filename;
@@ -20,7 +20,7 @@ public class Chunk {
 		this.bytes = bytes;
 	}
 
-	public int getStart() {
+	public long getStart() {
 		return start;
 	}
 

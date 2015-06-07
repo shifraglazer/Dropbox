@@ -3,86 +3,27 @@ package dropbox;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.net.MalformedURLException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 
 public class FileCache {
 
-	public List<DropboxFolder> folders;
-	public static final String ROOT = "C://dropbox//";
+	public String root;
 	private File directory;
 
-	public FileCache(String filename) {
-		directory = new File(ROOT+filename);
-		
+	public FileCache(String filename) throws IOException {
+		root = "C:/dropbox/" + filename;
+		directory = new File(root);
 		directory.mkdirs();
+		directory.createNewFile();
+
 		System.out.println(directory.getAbsolutePath());
-		
-		folders = new ArrayList<DropboxFolder>();
-	}
-
-	public boolean isUsername(String username) {
-		for (DropboxFolder folder : folders) {
-			if (folder.getUsername().equals(username)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	public boolean makeDir(String username) {
-		if (isUsername(username)) {
-			return false;
-		}
-		DropboxFolder file = new DropboxFolder(ROOT + "/" + username);
-		folders.add(file);
-		return true;
 	}
 
 	public File[] getFiles() {
-		
+
 		return directory.listFiles();
 
-	}
-
-	/*
-	 * public File[] getFiles(String username) { for (DropboxFolder file :
-	 * folders) { if (file.getUsername().equals(username)) { return
-	 * file.listFiles(); } } return null; }
-	 */
-
-	// client add chunk to server file
-	public Date addChunk(Chunk chunk) throws IOException{
-		File[] folder = directory.listFiles();
-		for (File file : folder) {
-			if (file.getName().equals(chunk.getFilename())) {
-				DropboxFile match = new DropboxFile(file);
-				match.close();
-				return match.upload(chunk);
-
-			}
-		}
-
-		DropboxFile file = new DropboxFile(directory,chunk.getFilename(), chunk.getBytes().length);
-		file.close();
-		return file.upload(chunk);
-	}
-
-	// client get chunk from server
-	public Chunk getChunk(String filename, int start, int length) throws MalformedURLException, IOException {
-		File[] folder = directory.listFiles();
-		for (File file : folder) {
-			if (file.getName().equals(filename)) {
-				DropboxFile match = new DropboxFile(file);
-				match.close();
-				return match.getChunk(start, length);
-			}
-		}
-		// TODO if not enough to send back send length of actual data?
-		// TODO throw exception?
-		return null;
 	}
 
 	public File findFile(String filename) throws FileNotFoundException {
@@ -94,15 +35,59 @@ public class FileCache {
 		throw new FileNotFoundException();
 	}
 
-	public long getLastModified(String filename) throws FileNotFoundException {
+	public boolean isFile(String filename) {
+		for (File file : directory.listFiles()) {
+			if (file.getName().equals(filename)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public void upload(Chunk chunk) throws IOException {
+		System.out.println("uploading chunk from: " + chunk.getFilename());
+		File file;
+		if (!isFile(chunk.getFilename())) {
+			file = new File(root + File.separator + chunk.getFilename());
+			file.getParentFile().mkdirs();
+			file.createNewFile();
+		} else {
+			file = findFile(chunk.getFilename());
+		}
+		RandomAccessFile rafile = new RandomAccessFile(file, "rw");
+		byte[] bytes = chunk.getBytes();
+		rafile.seek(chunk.getStart());
+		rafile.write(bytes, 0, bytes.length);
+
+		rafile.close();
+		// TODO return date?? fix
+		// TODO file out of memory
+
+	}
+
+	// TODO deal with if not enough bytes file is shorter than request
+	public Chunk getChunk(String filename, int start, int length)
+			throws MalformedURLException, IOException {
+		System.out.println("get chunk from: " + filename);
+		File file = findFile(filename);
+		RandomAccessFile rafile = new RandomAccessFile(file, "rw");
+		rafile.seek(start);
+		byte[] bytes = new byte[length];
+		rafile.read(bytes, 0, length);
+		Chunk aChunk = new Chunk(filename, bytes, start);
+		rafile.close();
+		return aChunk;
+
+	}
+
+	public long getLastModified(String filename) {
 		File[] folder = directory.listFiles();
 		for (File file : folder) {
 			if (file.getName().equals(filename)) {
-			return file.lastModified();
+				return file.lastModified();
 			}
 		}
-		throw new FileNotFoundException();
+		return 0;
 	}
-
 
 }
