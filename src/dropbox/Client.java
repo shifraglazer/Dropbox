@@ -1,25 +1,39 @@
 package dropbox;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Base64;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.StringTokenizer;
 
 public class Client implements ReaderListener {
 
+	private static final int CHUNK_SIZE = 512;
 	private Socket socket;
 	private OutputStream out;
 	private PrintWriter write;
 	private List<ClientCommand> commands;
 	private FileCache fileCache;
+	private Map<String, Long> filesFromServer;
+	private int numFilesInServer;
+
+	private ArrayList<File> toBeAddedToServer;
+
 
 	public Client(String directory) throws UnknownHostException, IOException {
 		fileCache = new FileCache(directory);
 		commands = new ArrayList<ClientCommand>();
+		filesFromServer = new HashMap<String, Long>();
+
 		ClientChunk chunk = new ClientChunk();
 		SyncCommand sync = new SyncCommand();
 		FileCommand file = new FileCommand();
@@ -37,8 +51,75 @@ public class Client implements ReaderListener {
 
 	}
 
-	public void uploadFile(String string) {
+	public void filesCmd(int numFilesInServer){
+		this.numFilesInServer = numFilesInServer;
 
+		if(numFilesInServer == 0){
+			uploadAll();
+		}
+	}
+
+	public void uploadFile(String line) {
+		StringTokenizer token = new StringTokenizer(line);
+		String file = token.nextToken();
+		file = token.nextToken();
+		long lastModified = Long.valueOf(token.nextToken());
+		int size = Integer.valueOf(token.nextToken());
+
+		filesFromServer.put(file, lastModified);
+
+		if(filesFromServer.size() == numFilesInServer){
+			File[] files = fileCache.getFiles();
+
+			for(File f : files){
+				if (!filesFromServer.containsKey(f.getName())){
+					toBeAddedToServer.add(f);
+				}
+				else if(filesFromServer.get(f.getName()) < f.lastModified()){
+					toBeAddedToServer.add(f);
+				}
+			}
+		}
+
+	}
+
+	public void uploadAll(){
+		File[] files = fileCache.getFiles();
+
+		for(File f : files){
+			toBeAddedToServer.add(f);
+		}
+		uploadToServer();
+	}
+
+	public void uploadToServer(){
+
+		if(toBeAddedToServer != null){
+			File file;
+			int offset = 0;
+			int length;
+			for(int i = 0; i < toBeAddedToServer.size(); i++){
+				file = toBeAddedToServer.get(i);
+				while (offset < file.length()) {
+					if (file.length() - offset < CHUNK_SIZE) {
+						length = (int) (file.length() - offset);
+					} 
+					else {
+						length = CHUNK_SIZE;
+					}
+					System.out.println("getting chunk server..");
+
+					Chunk chunk;
+					try {
+						chunk = fileCache.getChunk(file.getName(), offset, length);
+						writeMessage("CHUNK " + file.getName() + " " + file.lastModified() + " " + file.length() + " " + offset + " " + Base64.getEncoder().encodeToString(chunk.getBytes()));
+						offset += length;
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}
 	}
 
 	public void requestFiles() {
@@ -60,7 +141,6 @@ public class Client implements ReaderListener {
 				try {
 					commands.get(i).executeCommand(this);
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -69,7 +149,6 @@ public class Client implements ReaderListener {
 	}
 
 	public void requestUpdate(String filename, long lastmodified, int size) {
-
 		try {
 			if (lastmodified > fileCache.findFile(filename).lastModified()) {
 				requestDownloadFile(filename, size);
@@ -94,28 +173,12 @@ public class Client implements ReaderListener {
 
 	}
 
-	public void addChunk(Chunk chunk) throws IOException {
-		fileCache.upload(chunk);
+	public void addChunk(Chunk chunk, long lastModified) throws IOException {
+		fileCache.upload(chunk, lastModified);
 	}
 
 	public void requestDownloadFile(String filename, int size) {
-		/*
-		 * int downloadedSize = 0; System.out.println("file size="+size); while
-		 * (downloadedSize < size) { if(size-downloadedSize<CHUNK_SIZE){
-		 * System.out.println("client requesting next chunk: "+filename);
-		 * downloadChunkMsg(filename, downloadedSize, size-downloadedSize);
-		 * downloadedSize=size; } else{ downloadChunkMsg(filename,
-		 * downloadedSize, CHUNK_SIZE); downloadedSize+=CHUNK_SIZE; } }
-		 */
 		writeMessage("DOWNLOAD " + filename);
-
-	}
-
-	public void downloadChunkMsg(String filename, int downloadedSize,
-			int chunkSize) {
-		writeMessage("DOWNLOAD " + filename + " " + downloadedSize + " "
-				+ chunkSize);
-
 	}
 
 	@Override
@@ -127,10 +190,8 @@ public class Client implements ReaderListener {
 		try {
 			Client client = new Client("client1");
 		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

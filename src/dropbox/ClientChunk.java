@@ -27,7 +27,7 @@ public class ClientChunk extends ClientCommand {
 		int offset = Integer.valueOf(token.nextToken());
 		String base64 = token.nextToken();
 		byte[] bytes = Base64.getDecoder().decode(base64);
-		client.addChunk(new Chunk(filename, bytes, offset));
+		client.addChunk(new Chunk(filename, bytes, offset), lastmodified);
 	}
 
 	@Override

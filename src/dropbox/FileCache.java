@@ -44,7 +44,7 @@ public class FileCache {
 		return false;
 	}
 
-	public void upload(Chunk chunk) throws IOException {
+	public void upload(Chunk chunk, long lastModified) throws IOException {
 		System.out.println("uploading chunk from: " + chunk.getFilename());
 		File file;
 		if (!isFile(chunk.getFilename())) {
@@ -60,6 +60,8 @@ public class FileCache {
 		rafile.write(bytes, 0, bytes.length);
 
 		rafile.close();
+		
+		file.setLastModified(lastModified);
 		// TODO return date?? fix
 		// TODO file out of memory
 

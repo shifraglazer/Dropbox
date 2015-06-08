@@ -28,7 +28,7 @@ public class ServerChunk extends ServerCommand {
 		int offset = Integer.valueOf(token.nextToken());
 		String base64 = token.nextToken();
 		byte[] bytes = Base64.getDecoder().decode(base64);
-		fileCache.upload(new Chunk(filename, bytes, offset));
+		fileCache.upload(new Chunk(filename, bytes, offset), lastmodified);
 		if (offset + bytes.length == size) {
 			for (Socket asocket : sockets) {
 				writeMessage(asocket, "SYNC " + filename + " " + lastmodified
