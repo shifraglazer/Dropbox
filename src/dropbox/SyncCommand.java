@@ -27,7 +27,7 @@ public class SyncCommand extends ClientCommand {
 		StringTokenizer token = new StringTokenizer(line);
 		String file = token.nextToken();
 		file = token.nextToken();
-		int lastModified = Integer.valueOf(token.nextToken());
+		long lastModified = Long.valueOf(token.nextToken());
 		int size = Integer.valueOf(token.nextToken());
 		client.syncFile(file, lastModified, size);
 	}

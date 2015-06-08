@@ -33,7 +33,7 @@ public class Client implements ReaderListener {
 		fileCache = new FileCache(directory);
 		commands = new ArrayList<ClientCommand>();
 		filesFromServer = new HashMap<String, Long>();
-
+		toBeAddedToServer=new ArrayList<File>();
 		ClientChunk chunk = new ClientChunk();
 		SyncCommand sync = new SyncCommand();
 		FileCommand file = new FileCommand();
@@ -79,6 +79,7 @@ public class Client implements ReaderListener {
 					toBeAddedToServer.add(f);
 				}
 			}
+			uploadToServer();
 		}
 
 	}
@@ -107,7 +108,7 @@ public class Client implements ReaderListener {
 					else {
 						length = CHUNK_SIZE;
 					}
-					System.out.println("getting chunk server..");
+					System.out.println("upload chunk to sever..");
 
 					Chunk chunk;
 					try {
@@ -188,7 +189,7 @@ public class Client implements ReaderListener {
 
 	public static void main(String[] args) {
 		try {
-			Client client = new Client("client1");
+			Client client = new Client("client2");
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
