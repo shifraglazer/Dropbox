@@ -22,14 +22,14 @@ public class Server implements ReaderListener {
 		write = new WriterThread(queue, fileCache, sockets, this);
 		write.start();
 		try {
-			ServerSocket serverSocket = new ServerSocket(6003);
+			ServerSocket serverSocket = new ServerSocket(8080);
 			while (true) {
 				socket = serverSocket.accept();
 				synchronized (sockets) {
 					sockets.add(socket);
 					System.out.println("client added");
 				}
-				
+
 				ReaderThread thread = new ReaderThread(socket, this);
 				thread.start();
 			}

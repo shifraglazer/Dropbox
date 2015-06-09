@@ -41,7 +41,7 @@ public class Client implements ReaderListener {
 		commands.add(sync);
 		commands.add(file);
 
-		socket = new Socket("localhost", 6003);
+		socket = new Socket("localhost", 8080);
 		new ReaderThread(socket, this).start();
 		out = socket.getOutputStream();
 		write = new PrintWriter(out);
@@ -49,10 +49,10 @@ public class Client implements ReaderListener {
 
 	}
 
-	public void filesCmd(int numFilesInServer){
+	public void filesCmd(int numFilesInServer) {
 		this.numFilesInServer = numFilesInServer;
 
-		if(numFilesInServer == 0){
+		if (numFilesInServer == 0) {
 			uploadAll();
 		}
 	}
@@ -66,14 +66,13 @@ public class Client implements ReaderListener {
 
 		filesFromServer.put(file, lastModified);
 
-		if(filesFromServer.size() == numFilesInServer){
+		if (filesFromServer.size() == numFilesInServer) {
 			File[] files = fileCache.getFiles();
 
-			for(File f : files){
-				if (!filesFromServer.containsKey(f.getName())){
+			for (File f : files) {
+				if (!filesFromServer.containsKey(f.getName())) {
 					toBeAddedToServer.add(f);
-				}
-				else if(filesFromServer.get(f.getName()) < f.lastModified()){
+				} else if (filesFromServer.get(f.getName()) < f.lastModified()) {
 					toBeAddedToServer.add(f);
 				}
 			}
@@ -82,36 +81,46 @@ public class Client implements ReaderListener {
 
 	}
 
-	public void uploadAll(){
+	public void uploadAll() {
 		File[] files = fileCache.getFiles();
 
-		for(File f : files){
+		for (File f : files) {
 			toBeAddedToServer.add(f);
 		}
 		uploadToServer();
 	}
 
-	public void uploadToServer(){
+	public void uploadToServer() {
 
-		if(toBeAddedToServer != null){
+		if (toBeAddedToServer != null) {
 			File file;
 			int offset = 0;
 			int length;
-			for(int i = 0; i < toBeAddedToServer.size(); i++){
+			for (int i = 0; i < toBeAddedToServer.size(); i++) {
 				file = toBeAddedToServer.get(i);
 				while (offset < file.length()) {
 					if (file.length() - offset < CHUNK_SIZE) {
 						length = (int) (file.length() - offset);
-					} 
-					else {
+					} else {
 						length = CHUNK_SIZE;
 					}
 					System.out.println("upload chunk to sever..");
 
 					Chunk chunk;
 					try {
-						chunk = fileCache.getChunk(file.getName(), offset, length);
-						writeMessage("CHUNK " + file.getName() + " " + file.lastModified() + " " + file.length() + " " + offset + " " + Base64.getEncoder().encodeToString(chunk.getBytes()));
+						chunk = fileCache.getChunk(file.getName(), offset,
+								length);
+						writeMessage("CHUNK "
+								+ file.getName()
+								+ " "
+								+ file.lastModified()
+								+ " "
+								+ file.length()
+								+ " "
+								+ offset
+								+ " "
+								+ Base64.getEncoder().encodeToString(
+										chunk.getBytes()));
 						offset += length;
 					} catch (IOException e) {
 						e.printStackTrace();
@@ -185,7 +194,7 @@ public class Client implements ReaderListener {
 
 	public static void main(String[] args) {
 		try {
-			Client client = new Client("client2");
+			Client client = new Client("client1");
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		} catch (IOException e) {

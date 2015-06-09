@@ -12,7 +12,7 @@ public class FileCache {
 	private File directory;
 
 	public FileCache(String filename) throws IOException {
-		root = "C:/dropbox/" + filename;
+		root = "./" + filename;
 		directory = new File(root);
 		directory.mkdirs();
 		directory.createNewFile();
@@ -49,22 +49,22 @@ public class FileCache {
 			file = new File(root + File.separator + chunk.getFilename());
 			file.getParentFile().mkdirs();
 			file.createNewFile();
-		} 
-		else {
+		} else {
 			file = findFile(chunk.getFilename());
 		}
 
 		RandomAccessFile rafile = new RandomAccessFile(file, "rw");
 		byte[] bytes = chunk.getBytes();
 		rafile.seek(chunk.getStart());
-		rafile.write(bytes, 0, bytes.length);
+		rafile.write(bytes);
 
 		rafile.close();
 
 		file.setLastModified(lastModified);
 	}
 
-	public Chunk getChunk(String filename, int start, int length) throws MalformedURLException, IOException {
+	public Chunk getChunk(String filename, int start, int length)
+			throws MalformedURLException, IOException {
 		System.out.println("get chunk from: " + filename);
 		File file = findFile(filename);
 		RandomAccessFile rafile = new RandomAccessFile(file, "rw");
