@@ -21,9 +21,7 @@ public class FileCache {
 	}
 
 	public File[] getFiles() {
-
 		return directory.listFiles();
-
 	}
 
 	public File findFile(String filename) throws FileNotFoundException {
@@ -51,25 +49,22 @@ public class FileCache {
 			file = new File(root + File.separator + chunk.getFilename());
 			file.getParentFile().mkdirs();
 			file.createNewFile();
-		} else {
+		} 
+		else {
 			file = findFile(chunk.getFilename());
 		}
+
 		RandomAccessFile rafile = new RandomAccessFile(file, "rw");
 		byte[] bytes = chunk.getBytes();
 		rafile.seek(chunk.getStart());
 		rafile.write(bytes, 0, bytes.length);
 
 		rafile.close();
-		
-		file.setLastModified(lastModified);
-		// TODO return date?? fix
-		// TODO file out of memory
 
+		file.setLastModified(lastModified);
 	}
 
-	// TODO deal with if not enough bytes file is shorter than request
-	public Chunk getChunk(String filename, int start, int length)
-			throws MalformedURLException, IOException {
+	public Chunk getChunk(String filename, int start, int length) throws MalformedURLException, IOException {
 		System.out.println("get chunk from: " + filename);
 		File file = findFile(filename);
 		RandomAccessFile rafile = new RandomAccessFile(file, "rw");
@@ -79,7 +74,6 @@ public class FileCache {
 		Chunk aChunk = new Chunk(filename, bytes, start);
 		rafile.close();
 		return aChunk;
-
 	}
 
 	public long getLastModified(String filename) {

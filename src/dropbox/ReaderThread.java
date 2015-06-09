@@ -29,11 +29,9 @@ public class ReaderThread extends Thread {
 				listener.onLineRead(socket, line);
 
 			}
-			// in.close();
-			// onjIn.close();
+
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		// listener.onCloseSocket(socket);
 	}
 }

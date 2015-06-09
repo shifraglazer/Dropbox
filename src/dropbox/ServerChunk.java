@@ -10,29 +10,24 @@ import java.util.regex.Pattern;
 
 public class ServerChunk extends ServerCommand {
 
-	// CHUNK_BASE64_LENGTH=(256*4)/3== 342
-	private static final Pattern CHUNK_COMMAND = Pattern
-			.compile("CHUNK \\S+\\s\\d+\\s\\d+\\s\\d+\\s[a-zA-Z0-9=/]*{0,}");
-
+	private static final Pattern CHUNK_COMMAND = Pattern.compile("CHUNK \\S+\\s\\d+\\s\\d+\\s\\d+\\s[a-zA-Z0-9=/]*{0,}");
 	private String line;
 
 	@Override
-	void executeCommand(FileCache fileCache, Socket socket,
-			ArrayList<Socket> sockets) throws IOException {
+	void executeCommand(FileCache fileCache, Socket socket, ArrayList<Socket> sockets) throws IOException {
 		StringTokenizer token = new StringTokenizer(line);
 		String chunk = token.nextToken();
 		String filename = token.nextToken();
-		// TODO is last modified correct or need updated?
 		long lastmodified = Long.valueOf(token.nextToken());
 		int size = Integer.valueOf(token.nextToken());
 		int offset = Integer.valueOf(token.nextToken());
 		String base64 = token.nextToken();
+		
 		byte[] bytes = Base64.getDecoder().decode(base64);
 		fileCache.upload(new Chunk(filename, bytes, offset), lastmodified);
 		if (offset + bytes.length == size) {
 			for (Socket asocket : sockets) {
-				writeMessage(asocket, "SYNC " + filename + " " + lastmodified
-						+ " " + size);
+				writeMessage(asocket, "SYNC " + filename + " " + lastmodified + " " + size);
 			}
 		}
 

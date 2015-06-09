@@ -8,18 +8,14 @@ import java.util.regex.Pattern;
 public class SyncCommand extends ClientCommand {
 
 	private String line;
-	private static final Pattern SYNC_COMMAND = Pattern
-			.compile("SYNC \\S+\\s\\d+\\s\\d+");
+	private static final Pattern SYNC_COMMAND = Pattern.compile("SYNC \\S+\\s\\d+\\s\\d+");
 
-	public SyncCommand() {
-	}
-
+	
 	@Override
 	public boolean matches(String string) {
 		Matcher match = SYNC_COMMAND.matcher(string);
 		line = string;
 		return match.matches();
-
 	}
 
 	@Override

@@ -23,8 +23,7 @@ public class DownloadCommand extends ServerCommand {
 	}
 
 	@Override
-	void executeCommand(FileCache fileCache, Socket socket,
-			ArrayList<Socket> sockets) throws IOException {
+	void executeCommand(FileCache fileCache, Socket socket, ArrayList<Socket> sockets) throws IOException {
 		this.socket = socket;
 		StringTokenizer token = new StringTokenizer(line);
 		String cmd = token.nextToken();
@@ -36,26 +35,15 @@ public class DownloadCommand extends ServerCommand {
 
 			if (file.length() - offset < CHUNK_SIZE) {
 				length = (int) (file.length() - offset);
-			} else {
+			} 
+			else {
 				length = CHUNK_SIZE;
 			}
+
 			System.out.println("getting chunk sever..");
 
 			Chunk chunk = fileCache.getChunk(filename, offset, length);
-
-			writeMessage(
-					socket,
-					"CHUNK "
-							+ filename
-							+ " "
-							+ file.lastModified()
-							+ " "
-							+ file.length()
-							+ " "
-							+ offset
-							+ " "
-							+ Base64.getEncoder().encodeToString(
-									chunk.getBytes()));
+			writeMessage(socket, "CHUNK " + filename + " " + file.lastModified() + " " + file.length() + " " + offset + " " + Base64.getEncoder().encodeToString(chunk.getBytes()));
 			offset += length;
 		}
 

@@ -5,7 +5,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -25,15 +24,14 @@ public class Client implements ReaderListener {
 	private FileCache fileCache;
 	private Map<String, Long> filesFromServer;
 	private int numFilesInServer;
-
 	private ArrayList<File> toBeAddedToServer;
-
 
 	public Client(String directory) throws UnknownHostException, IOException {
 		fileCache = new FileCache(directory);
 		commands = new ArrayList<ClientCommand>();
 		filesFromServer = new HashMap<String, Long>();
-		toBeAddedToServer=new ArrayList<File>();
+		toBeAddedToServer = new ArrayList<File>();
+
 		ClientChunk chunk = new ClientChunk();
 		SyncCommand sync = new SyncCommand();
 		FileCommand file = new FileCommand();
@@ -161,8 +159,6 @@ public class Client implements ReaderListener {
 	}
 
 	public void syncFile(String filename, long lastmodified, int size) {
-
-		// TODO remove/fix file not found
 		try {
 			if (lastmodified > fileCache.findFile(filename).lastModified()) {
 				requestDownloadFile(filename, size);

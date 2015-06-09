@@ -10,8 +10,6 @@ public class FilesCommand extends ClientCommand {
 	private String line;
 	private static final Pattern FILES_COMMAND = Pattern.compile("FILES \\d+");
 
-	public FilesCommand() {
-	}
 
 	@Override
 	public boolean matches(String string) {
@@ -24,11 +22,9 @@ public class FilesCommand extends ClientCommand {
 	void executeCommand(Client client) throws IOException {
 		StringTokenizer token = new StringTokenizer(line);
 		String file = token.nextToken();
-	
 		int size = Integer.valueOf(token.nextToken());
 		
 		client.filesCmd(size);
-
 	}
 
 }

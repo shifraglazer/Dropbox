@@ -9,9 +9,8 @@ public class FileCommand extends ClientCommand{
 
 	private String line;
 	private static final Pattern FILE_COMMAND = Pattern.compile("FILE \\S+\\s\\d+\\s\\d+");
-	public FileCommand() {
-		
-	}
+
+
 	@Override
 	public boolean matches(String string) {
 		Matcher match = FILE_COMMAND.matcher(string);
@@ -25,11 +24,9 @@ public class FileCommand extends ClientCommand{
 		file = token.nextToken();
 		long lastModified = Long.valueOf(token.nextToken());
 		int size = Integer.valueOf(token.nextToken());
-		
+
 		client.uploadFile(line);
-		
 		client.requestUpdate(file, lastModified, size);
-		
 	}
 
 }

@@ -22,21 +22,20 @@ public class Server implements ReaderListener {
 		write = new WriterThread(queue, fileCache, sockets, this);
 		write.start();
 		try {
-			ServerSocket serverSocket = new ServerSocket(6003); // port num sent
+			ServerSocket serverSocket = new ServerSocket(6003);
 			while (true) {
 				socket = serverSocket.accept();
 				synchronized (sockets) {
 					sockets.add(socket);
 					System.out.println("client added");
 				}
+				
 				ReaderThread thread = new ReaderThread(socket, this);
 				thread.start();
 			}
 
 		} catch (IOException e) {
-
 			e.printStackTrace();
-
 		}
 	}
 
@@ -47,8 +46,7 @@ public class Server implements ReaderListener {
 
 	@Override
 	public void onCloseSocket(Socket socket) {
-		// TODO Auto-generated method stub
-
+		System.out.println("Thank you for using Dropbox!");
 	}
 
 	public static void main(String args[]) {
@@ -56,7 +54,6 @@ public class Server implements ReaderListener {
 
 			Server server = new Server("server");
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

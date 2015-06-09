@@ -13,8 +13,7 @@ public class WriterThread extends Thread {
 	ArrayList<Socket> sockets;
 	ArrayList<ServerCommand> commands;
 
-	public WriterThread(ConcurrentHashMap<String, Socket> queue,
-			FileCache fileCache, ArrayList<Socket> sockets, Server server) {
+	public WriterThread(ConcurrentHashMap<String, Socket> queue, FileCache fileCache, ArrayList<Socket> sockets, Server server) {
 		this.queue = queue;
 		this.fileCache = fileCache;
 		this.sockets = sockets;
@@ -25,7 +24,6 @@ public class WriterThread extends Thread {
 		commands.add(download);
 		commands.add(chunk);
 		commands.add(list);
-
 	}
 
 	@Override
@@ -45,7 +43,6 @@ public class WriterThread extends Thread {
 									sockets);
 							queue.remove(string);
 						} catch (IOException e) {
-							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
 

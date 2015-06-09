@@ -13,8 +13,7 @@ public class ListCommand extends ServerCommand {
 	}
 
 	@Override
-	void executeCommand(FileCache fileCache, Socket socket,
-			ArrayList<Socket> sockets) throws IOException {
+	void executeCommand(FileCache fileCache, Socket socket, ArrayList<Socket> sockets) throws IOException {
 
 		File[] list = fileCache.getFiles();
 
