@@ -11,7 +11,7 @@ public class Server implements ReaderListener {
 	private Socket socket;
 	private ConcurrentHashMap<String, Socket> queue;
 	private ArrayList<Socket> sockets;
-	private WriterThread write;
+	private ProcessServerCommands write;
 	private FileCache fileCache;
 
 	public Server(String filename) throws IOException {
@@ -19,10 +19,10 @@ public class Server implements ReaderListener {
 		queue = new ConcurrentHashMap<String, Socket>();
 		sockets = new ArrayList<Socket>();
 
-		write = new WriterThread(queue, fileCache, sockets, this);
+		write = new ProcessServerCommands(queue, fileCache, sockets, this);
 		write.start();
 		try {
-			ServerSocket serverSocket = new ServerSocket(8080);
+			ServerSocket serverSocket = new ServerSocket(8181);
 			while (true) {
 				socket = serverSocket.accept();
 				synchronized (sockets) {

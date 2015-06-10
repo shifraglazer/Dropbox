@@ -6,15 +6,16 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class WriterThread extends Thread {
+public class ProcessServerCommands extends Thread {
 
-	private ConcurrentHashMap<String, Socket> queue;
+	private ConcurrentHashMap<String, Socket> listOfCmds;
 	private FileCache fileCache;
 	ArrayList<Socket> sockets;
 	ArrayList<ServerCommand> commands;
 
-	public WriterThread(ConcurrentHashMap<String, Socket> queue, FileCache fileCache, ArrayList<Socket> sockets, Server server) {
-		this.queue = queue;
+	public ProcessServerCommands(ConcurrentHashMap<String, Socket> queue,
+			FileCache fileCache, ArrayList<Socket> sockets, Server server) {
+		this.listOfCmds = queue;
 		this.fileCache = fileCache;
 		this.sockets = sockets;
 		commands = new ArrayList<ServerCommand>();
@@ -30,18 +31,18 @@ public class WriterThread extends Thread {
 	public void run() {
 
 		while (true) {
-			Iterator<String> iter = queue.keySet().iterator();
+			Iterator<String> iter = listOfCmds.keySet().iterator();
 			while (iter.hasNext()) {
 				String string;
 				string = iter.next();
-				Socket socket = queue.get(string);
-				System.out.println("writer: " + string);
+				Socket socket = listOfCmds.get(string);
+				System.out.println("Server read: " + string);
 				for (int i = 0; i < commands.size(); i++) {
 					if (commands.get(i).matches(string)) {
 						try {
 							commands.get(i).executeCommand(fileCache, socket,
 									sockets);
-							queue.remove(string);
+							listOfCmds.remove(string);
 						} catch (IOException e) {
 							e.printStackTrace();
 						}

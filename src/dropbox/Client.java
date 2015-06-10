@@ -41,7 +41,7 @@ public class Client implements ReaderListener {
 		commands.add(sync);
 		commands.add(file);
 
-		socket = new Socket("localhost", 8080);
+		socket = new Socket("localhost", 8181);
 		new ReaderThread(socket, this).start();
 		out = socket.getOutputStream();
 		write = new PrintWriter(out);
